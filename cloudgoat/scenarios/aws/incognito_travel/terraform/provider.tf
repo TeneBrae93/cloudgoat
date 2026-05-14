@@ -1,15 +1,26 @@
+terraform {
+  required_version = ">= 1.5"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0.0"
+    }
+    archive = {
+      source  = "hashicorp/archive"
+      version = ">= 2.0.0"
+    }
+  }
+}
+
 provider "aws" {
-  region = var.region
-}
+  profile = var.profile
+  region  = var.region
 
-variable "region" {
-  default = "us-east-1"
-}
-
-variable "profile" {
-  description = "The AWS profile to use"
-}
-
-variable "cgid" {
-  description = "CloudGoat ID for resources"
+  default_tags {
+    tags = {
+      Stack    = var.stack-name
+      Scenario = var.scenario-name
+    }
+  }
 }

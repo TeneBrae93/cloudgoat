@@ -1,7 +1,8 @@
 resource "aws_cognito_user_pool" "pool" {
   name = "incognito-travel-pool-${var.cgid}"
 
-  alias_attributes         = ["email"]
+  # FIX: Using email as username attribute instead of alias
+  username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
 
   schema {
@@ -28,7 +29,6 @@ resource "aws_cognito_user_pool" "pool" {
     default_email_option = "CONFIRM_WITH_CODE"
   }
 
-  # MISCONFIG: Allow attribute changes without immediate verification
   user_attribute_update_settings {
     attributes_require_verification_before_update = []
   }
@@ -44,13 +44,13 @@ resource "aws_cognito_user_pool_client" "client" {
     "ALLOW_USER_SRP_AUTH"
   ]
 
-  # MISCONFIG: Writable email attribute
   write_attributes = ["email", "name"]
   read_attributes  = ["email", "name"]
 }
 
 resource "aws_cognito_user" "cory" {
   user_pool_id = aws_cognito_user_pool.pool.id
+  # Now that email is a username attribute, this is allowed
   username     = "cory@hacksmarter.hsm"
   attributes = {
     email          = "cory@hacksmarter.hsm"
