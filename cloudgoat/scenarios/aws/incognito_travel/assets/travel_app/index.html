@@ -166,13 +166,15 @@
                     const res = await fetch(`$${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
                     const data = await res.json();
                     if (res.ok && data.tokens) {
-                        // Real Login Successful
-                        localStorage.setItem('token', data.tokens.id_token); // Store ID Token for email access
+                        // Real Login Successful - Store both for exploitation
+                        localStorage.setItem('id_token', data.tokens.id_token);
+                        localStorage.setItem('token', data.tokens.access_token);
+                        
                         msg.style.color = 'var(--success)';
                         msg.innerText = "Access Granted.";
                         setTimeout(() => {
                             closeModal();
-                            loadProfile(data.tokens.id_token);
+                            loadProfile(data.tokens.id_token); // Profile needs ID Token
                         }, 1000);
                     } else {
                         msg.innerText = data.message; 
