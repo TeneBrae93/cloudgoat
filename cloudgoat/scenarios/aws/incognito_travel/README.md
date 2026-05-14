@@ -16,8 +16,7 @@
 
 ## Scenario Start(s)
 
-1. AWS Access Key and Secret Key for a restricted IAM user.
-2. URL of the "Incognito Travel" website.
+1. URL of the "Incognito Travel" website.
 
 ## Scenario Goal(s)
 

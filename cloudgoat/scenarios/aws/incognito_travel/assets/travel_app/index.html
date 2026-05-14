@@ -106,8 +106,14 @@
     </div>
 
     <script>
-        // API Endpoint - will be injected by Terraform or discovered
-        const API_URL = '/api'; 
+        // Cognito Configuration - discovered in JS
+        const COGNITO_CONFIG = {
+            userPoolId: '${pool_id}',
+            clientId: '${client_id}'
+        };
+
+        // API Endpoint - injected by Terraform
+        const API_URL = '${api_url}'; 
         let isLogin = true;
 
         function toggleAuth() {
