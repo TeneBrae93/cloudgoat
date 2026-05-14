@@ -80,11 +80,22 @@ exports.handler = async (event) => {
                     }),
                 };
             } catch (err) {
-                // If authentication fails (wrong password), return the specific message for enumeration
+                console.error("Auth Error:", err.name, err.message);
+                
+                // Specifically handle cases where user is found but something else is wrong
+                let customMsg = 'Incorrect password';
+                if (err.name === 'UserNotConfirmedException') {
+                    customMsg = 'User is not confirmed';
+                } else if (err.name === 'PasswordResetRequiredException') {
+                    customMsg = 'Password reset required';
+                } else if (err.name === 'NotAuthorizedException') {
+                    customMsg = 'Incorrect password';
+                }
+
                 return {
                     statusCode: 401,
                     headers,
-                    body: JSON.stringify({ message: 'Incorrect password' }),
+                    body: JSON.stringify({ message: customMsg }),
                 };
             }
         }
