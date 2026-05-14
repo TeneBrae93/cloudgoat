@@ -3,5 +3,5 @@ output "Starting_Website" {
 }
 
 output "cloudgoat_output_api_url" {
-  value = "http://${aws_instance.backend_server.public_ip}"
+  value = aws_apigatewayv2_api.api.api_endpoint
 }
