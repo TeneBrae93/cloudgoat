@@ -41,7 +41,7 @@ resource "aws_s3_object" "index" {
   bucket       = aws_s3_bucket.frontend.id
   key          = "index.html"
   content      = templatefile("${path.module}/../assets/travel_app/index.html", {
-    api_url   = aws_apigatewayv2_api.api.api_endpoint
+    api_url   = "http://${aws_instance.backend_server.public_ip}"
     pool_id   = aws_cognito_user_pool.pool.id
     client_id = aws_cognito_user_pool_client.client.id
   })
