@@ -27,3 +27,13 @@ trash/
 .vscode/settings.json
 venv/
 myenv/
+
+# AI and LLM
+.gemini/
+.aider*
+.cursorrules
+.cursor/
+.windsurfrules
+.continue/
+.copilot/
+llm_logs/
