@@ -1,4 +1,4 @@
-const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand, AdminInitiateAuthCommand, AdminGetUserCommand } = require("@aws-sdk/client-cognito-identity-provider");
+const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand, AdminInitiateAuthCommand, AdminGetUserCommand, AdminUpdateUserAttributesCommand } = require("@aws-sdk/client-cognito-identity-provider");
 
 const client = new CognitoIdentityProviderClient({});
 
@@ -14,9 +14,15 @@ function parseJwt(token) {
     }
 }
 
-// Mock Database for LOOKUP (Cory is the target)
+// Mock Database with Flag for Cory
 const users = [
-    { email: 'cory@hacksmarter.hsm', name: 'Cory (Admin)', role: 'admin', trips: ['Moon Safari', 'Deep Sea Exploration'] },
+    { 
+        email: 'cory@hacksmarter.hsm', 
+        name: 'Cory (Admin)', 
+        role: 'admin', 
+        trips: ['Moon Safari', 'Deep Sea Exploration'],
+        flag: 'HSM{C0gnit0_Em4il_N0rmaliz4ti0n_FTW}' 
+    },
 ];
 
 const headers = {
@@ -39,8 +45,6 @@ exports.handler = async (event) => {
             const body = JSON.parse(event.body || '{}');
             const { email, password } = body;
 
-            // 1. VULNERABILITY: User Enumeration
-            // We check Cognito to see if the user exists
             try {
                 await client.send(new AdminGetUserCommand({
                     UserPoolId: process.env.USER_POOL_ID,
@@ -48,24 +52,16 @@ exports.handler = async (event) => {
                 }));
             } catch (err) {
                 if (err.name === 'UserNotFoundException') {
-                    return {
-                        statusCode: 404,
-                        headers,
-                        body: JSON.stringify({ message: 'User does not exist' }),
-                    };
+                    return { statusCode: 404, headers, body: JSON.stringify({ message: 'User does not exist' }) };
                 }
             }
 
-            // 2. Real Authentication via Cognito
             try {
                 const authRes = await client.send(new AdminInitiateAuthCommand({
                     UserPoolId: process.env.USER_POOL_ID,
                     ClientId: process.env.CLIENT_ID,
                     AuthFlow: 'ADMIN_NO_SRP_AUTH',
-                    AuthParameters: {
-                        USERNAME: email,
-                        PASSWORD: password
-                    }
+                    AuthParameters: { USERNAME: email, PASSWORD: password }
                 }));
 
                 return {
@@ -80,23 +76,7 @@ exports.handler = async (event) => {
                     }),
                 };
             } catch (err) {
-                console.error("Auth Error:", err.name, err.message);
-                
-                // Specifically handle cases where user is found but something else is wrong
-                let customMsg = 'Incorrect password';
-                if (err.name === 'UserNotConfirmedException') {
-                    customMsg = 'User is not confirmed';
-                } else if (err.name === 'PasswordResetRequiredException') {
-                    customMsg = 'Password reset required';
-                } else if (err.name === 'NotAuthorizedException') {
-                    customMsg = 'Incorrect password';
-                }
-
-                return {
-                    statusCode: 401,
-                    headers,
-                    body: JSON.stringify({ message: customMsg }),
-                };
+                return { statusCode: 401, headers, body: JSON.stringify({ message: 'Incorrect password' }) };
             }
         }
 
@@ -122,63 +102,56 @@ exports.handler = async (event) => {
                     Permanent: true
                 }));
 
-                return {
-                    statusCode: 200,
-                    headers,
-                    body: JSON.stringify({ message: 'Registration Successful. You can now login.' }),
-                };
+                return { statusCode: 200, headers, body: JSON.stringify({ message: 'Registration Successful.' }) };
             } catch (err) {
-                console.error(err);
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ message: `Registration failed: ${err.message}` }),
-                };
+                return { statusCode: 400, headers, body: JSON.stringify({ message: `Failed: ${err.message}` }) };
             }
         }
 
         if (path === '/profile' && method === 'GET') {
             const authHeader = event.headers.Authorization || event.headers.authorization;
-            if (!authHeader) {
-                return { statusCode: 401, headers, body: JSON.stringify({ message: 'Unauthorized' }) };
-            }
+            if (!authHeader) return { statusCode: 401, headers, body: JSON.stringify({ message: 'Unauthorized' }) };
 
             const token = authHeader.split(' ')[1];
             const decoded = parseJwt(token);
             
-            if (!decoded || !decoded.email) {
-                return { statusCode: 400, headers, body: JSON.stringify({ message: 'Invalid Token' }) };
-            }
+            if (!decoded || !decoded.email) return { statusCode: 400, headers, body: JSON.stringify({ message: 'Invalid Token' }) };
 
+            // VULNERABILITY: Normalizing email from token to lowercase for lookup
             const normalizedEmail = decoded.email.toLowerCase();
             const userProfile = users.find(u => u.email === normalizedEmail);
 
             if (userProfile) {
-                return {
-                    statusCode: 200,
-                    headers,
-                    body: JSON.stringify({ profile: userProfile }),
-                };
+                return { statusCode: 200, headers, body: JSON.stringify({ profile: userProfile }) };
             } else {
                 return {
                     statusCode: 200,
                     headers,
-                    body: JSON.stringify({ profile: { email: decoded.email, name: 'New Explorer', role: 'user', trips: [] } }),
+                    body: JSON.stringify({ profile: { email: decoded.email, name: 'Guest Explorer', role: 'user', trips: [] } }),
                 };
             }
         }
 
-        return {
-            statusCode: 404,
-            headers,
-            body: JSON.stringify({ message: 'Not Found' }),
-        };
+        if (path === '/update-profile' && method === 'POST') {
+            const authHeader = event.headers.Authorization || event.headers.authorization;
+            if (!authHeader) return { statusCode: 401, headers, body: JSON.stringify({ message: 'Unauthorized' }) };
+
+            const body = JSON.parse(event.body || '{}');
+            const { name } = body;
+            const token = authHeader.split(' ')[1];
+            const decoded = parseJwt(token);
+
+            // In a real app, we'd update Cognito attributes here
+            // This is just a mock reflecting "Success"
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ message: 'Profile updated successfully (Mock)' }),
+            };
+        }
+
+        return { statusCode: 404, headers, body: JSON.stringify({ message: 'Not Found' }) };
     } catch (err) {
-        console.error(err);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ message: 'Internal Server Error' }),
-        };
+        return { statusCode: 500, headers, body: JSON.stringify({ message: 'Internal Server Error' }) };
     }
 };
