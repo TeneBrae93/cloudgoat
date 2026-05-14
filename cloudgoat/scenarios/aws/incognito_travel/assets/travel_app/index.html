@@ -400,8 +400,25 @@
                     msg.innerText = "Connection encryption failure.";
                 }
             } else {
-                msg.style.color = '#00b894';
-                msg.innerText = "Request initiated. Verification required via local node.";
+                try {
+                    const res = await fetch(`$${API_URL}/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        msg.style.color = '#00b894';
+                        msg.innerText = data.message;
+                        setTimeout(() => toggleAuth(), 2000); // Switch to login after 2s
+                    } else {
+                        msg.style.color = '#e74c3c';
+                        msg.innerText = data.message;
+                    }
+                } catch (e) {
+                    msg.style.color = '#e74c3c';
+                    msg.innerText = "Registration connection failure.";
+                }
             }
         }
 
