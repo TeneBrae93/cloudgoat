@@ -166,10 +166,17 @@
                     const res = await fetch(`$${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
                     const data = await res.json();
                     if (res.ok && data.tokens) {
-                        localStorage.setItem('token', data.tokens.access_token);
-                        msg.style.color = 'var(--success)'; msg.innerText = "Access Granted.";
-                        setTimeout(() => { closeModal(); loadProfile(data.tokens.access_token); }, 1000);
-                    } else { msg.innerText = data.message; }
+                        // Real Login Successful
+                        localStorage.setItem('token', data.tokens.id_token); // Store ID Token for email access
+                        msg.style.color = 'var(--success)';
+                        msg.innerText = "Access Granted.";
+                        setTimeout(() => {
+                            closeModal();
+                            loadProfile(data.tokens.id_token);
+                        }, 1000);
+                    } else {
+                        msg.innerText = data.message; 
+                    }
                 } catch (e) { msg.innerText = "Offline."; }
             } else {
                 try {
@@ -182,26 +189,44 @@
         }
 
         async function loadProfile(token) {
+            console.log("Loading profile with token...");
             try {
-                const res = await fetch(`$${API_URL}/profile`, { headers: { 'Authorization': `Bearer $${token}` } });
+                const res = await fetch(`$${API_URL}/profile`, {
+                    headers: { 'Authorization': `Bearer $${token}` }
+                });
+                console.log("Profile response status:", res.status);
                 const data = await res.json();
-                if (data.profile) {
+                console.log("Profile data received:", data);
+                
+                if (res.ok && data.profile) {
                     document.getElementById('landing-page').style.display = 'none';
                     document.getElementById('dashboard-panel').style.display = 'block';
                     document.getElementById('nav-login-btn').style.display = 'none';
                     document.getElementById('user-greeting').style.display = 'inline';
                     document.getElementById('user-greeting').innerText = `Agent: $${data.profile.name}`;
                     document.getElementById('logout-link').style.display = 'inline';
+                    
                     document.getElementById('profile-name').innerText = data.profile.name;
                     document.getElementById('update-name').value = data.profile.name;
                     document.getElementById('update-email').value = data.profile.email;
-                    if (data.profile.flag) { document.getElementById('flag-container').style.display = 'block'; document.getElementById('flag-value').innerText = data.profile.flag; }
+                    
+                    if (data.profile.flag) {
+                        document.getElementById('flag-container').style.display = 'block';
+                        document.getElementById('flag-value').innerText = data.profile.flag;
+                    }
+
                     const tripsList = document.getElementById('trips-list');
-                    if (data.profile.trips.length > 0) {
+                    if (data.profile.trips && data.profile.trips.length > 0) {
                         tripsList.innerHTML = data.profile.trips.map(t => `<div class="trip-item"><strong>$${t}</strong></div>`).join('');
-                    } else { tripsList.innerHTML = "<p>No active missions.</p>"; }
+                    } else {
+                        tripsList.innerHTML = "<p>No active missions assigned.</p>";
+                    }
+                } else {
+                    console.error("Profile load failed: ", data.message);
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error("Critical Profile Load Error:", e);
+            }
         }
 
         async function updateProfile() {
