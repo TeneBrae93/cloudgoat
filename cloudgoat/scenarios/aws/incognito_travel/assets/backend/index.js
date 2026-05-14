@@ -16,12 +16,12 @@ function parseJwt(token) {
 
 // Mock Database with Flag for Cory
 const users = [
-    { 
-        email: 'cory@hacksmarter.hsm', 
-        name: 'Cory (Admin)', 
-        role: 'admin', 
+    {
+        email: 'cory@hacksmarter.hsm',
+        name: 'Cory (Admin)',
+        role: 'admin',
         trips: ['Moon Safari', 'Deep Sea Exploration'],
-        flag: 'HSM{C0gnit0_Em4il_N0rmaliz4ti0n_FTW}' 
+        flag: 'HSM{C0gnit0_Em4il_N0rmaliz4ti0n_FTW}'
     },
 ];
 
@@ -67,7 +67,7 @@ exports.handler = async (event) => {
                 return {
                     statusCode: 200,
                     headers,
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         message: 'Login Successful',
                         tokens: {
                             id_token: authRes.AuthenticationResult.IdToken,
@@ -83,6 +83,15 @@ exports.handler = async (event) => {
         if (path === '/register' && method === 'POST') {
             const body = JSON.parse(event.body || '{}');
             const { email, password } = body;
+
+            // ENFORCE ATTAK PATH: Block direct registration of target account variants
+            if (email.toLowerCase() === 'cory@hacksmarter.hsm') {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ message: 'Registration Forbidden: This identifier is reserved for internal system use.' }),
+                };
+            }
 
             try {
                 await client.send(new AdminCreateUserCommand({
@@ -114,7 +123,7 @@ exports.handler = async (event) => {
 
             const token = authHeader.split(' ')[1];
             const decoded = parseJwt(token);
-            
+
             if (!decoded || !decoded.email) return { statusCode: 400, headers, body: JSON.stringify({ message: 'Invalid Token' }) };
 
             // VULNERABILITY: Normalizing email from token to lowercase for lookup
