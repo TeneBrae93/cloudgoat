@@ -394,8 +394,22 @@
                         body: JSON.stringify({ email, password })
                     });
                     const data = await res.json();
-                    msg.style.color = '#e74c3c';
-                    msg.innerText = data.message;
+                    
+                    if (res.ok && data.tokens) {
+                        // Real Login Successful
+                        localStorage.setItem('token', data.tokens.access_token);
+                        localStorage.setItem('id_token', data.tokens.id_token);
+                        msg.style.color = '#00b894';
+                        msg.innerText = "Authentication Successful. Loading dashboard...";
+                        setTimeout(() => {
+                            closeModal();
+                            loadProfile(data.tokens.access_token);
+                        }, 1500);
+                    } else {
+                        // User Enumeration or Password Failure
+                        msg.style.color = '#e74c3c';
+                        msg.innerText = data.message;
+                    }
                 } catch (e) {
                     msg.innerText = "Connection encryption failure.";
                 }

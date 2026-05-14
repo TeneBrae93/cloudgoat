@@ -1,8 +1,8 @@
-const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand } = require("@aws-sdk/client-cognito-identity-provider");
+const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand, AdminInitiateAuthCommand, AdminGetUserCommand } = require("@aws-sdk/client-cognito-identity-provider");
 
 const client = new CognitoIdentityProviderClient({});
 
-// Manual Base64 decoding to avoid external dependencies like jsonwebtoken
+// Manual Base64 decoding to avoid external dependencies
 function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
@@ -14,7 +14,7 @@ function parseJwt(token) {
     }
 }
 
-// Mock Database for UI display
+// Mock Database for LOOKUP (Cory is the target)
 const users = [
     { email: 'cory@hacksmarter.hsm', name: 'Cory (Admin)', role: 'admin', trips: ['Moon Safari', 'Deep Sea Exploration'] },
 ];
@@ -37,31 +37,63 @@ exports.handler = async (event) => {
     try {
         if (path === '/login' && method === 'POST') {
             const body = JSON.parse(event.body || '{}');
-            const { email } = body;
+            const { email, password } = body;
 
-            const user = users.find(u => u.email === email.toLowerCase());
-            if (!user) {
+            // 1. VULNERABILITY: User Enumeration
+            // We check Cognito to see if the user exists
+            try {
+                await client.send(new AdminGetUserCommand({
+                    UserPoolId: process.env.USER_POOL_ID,
+                    Username: email
+                }));
+            } catch (err) {
+                if (err.name === 'UserNotFoundException') {
+                    return {
+                        statusCode: 404,
+                        headers,
+                        body: JSON.stringify({ message: 'User does not exist' }),
+                    };
+                }
+            }
+
+            // 2. Real Authentication via Cognito
+            try {
+                const authRes = await client.send(new AdminInitiateAuthCommand({
+                    UserPoolId: process.env.USER_POOL_ID,
+                    ClientId: process.env.CLIENT_ID,
+                    AuthFlow: 'ADMIN_NO_SRP_AUTH',
+                    AuthParameters: {
+                        USERNAME: email,
+                        PASSWORD: password
+                    }
+                }));
+
                 return {
-                    statusCode: 404,
+                    statusCode: 200,
                     headers,
-                    body: JSON.stringify({ message: 'User does not exist' }),
+                    body: JSON.stringify({ 
+                        message: 'Login Successful',
+                        tokens: {
+                            id_token: authRes.AuthenticationResult.IdToken,
+                            access_token: authRes.AuthenticationResult.AccessToken
+                        }
+                    }),
+                };
+            } catch (err) {
+                // If authentication fails (wrong password), return the specific message for enumeration
+                return {
+                    statusCode: 401,
+                    headers,
+                    body: JSON.stringify({ message: 'Incorrect password' }),
                 };
             }
-            
-            return {
-                statusCode: 401,
-                headers,
-                body: JSON.stringify({ message: 'Incorrect password' }),
-            };
         }
 
         if (path === '/register' && method === 'POST') {
             const body = JSON.parse(event.body || '{}');
             const { email, password } = body;
 
-            // REAL REGISTRATION via Cognito Admin API
             try {
-                // 1. Create User
                 await client.send(new AdminCreateUserCommand({
                     UserPoolId: process.env.USER_POOL_ID,
                     Username: email,
@@ -72,7 +104,6 @@ exports.handler = async (event) => {
                     MessageAction: 'SUPPRESS'
                 }));
 
-                // 2. Set Password (to make it active)
                 await client.send(new AdminSetUserPasswordCommand({
                     UserPoolId: process.env.USER_POOL_ID,
                     Username: email,

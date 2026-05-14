@@ -35,7 +35,9 @@ resource "aws_iam_role_policy" "lambda_cognito" {
         Action = [
           "cognito-idp:AdminCreateUser",
           "cognito-idp:AdminSetUserPassword",
-          "cognito-idp:AdminUpdateUserAttributes"
+          "cognito-idp:AdminUpdateUserAttributes",
+          "cognito-idp:AdminInitiateAuth",
+          "cognito-idp:AdminGetUser"
         ]
         Effect   = "Allow"
         Resource = aws_cognito_user_pool.pool.arn
