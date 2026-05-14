@@ -132,7 +132,7 @@
             if (isLogin) {
                 // Perform Login (Enumeration Demo)
                 try {
-                    const res = await fetch(`${API_URL}/login`, {
+                    const res = await fetch(`$${API_URL}/login`, {
                         method: 'POST',
                         body: JSON.stringify({ email, password })
                     });
@@ -150,8 +150,8 @@
 
         async function loadProfile(token) {
             try {
-                const res = await fetch(`${API_URL}/profile`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const res = await fetch(`$${API_URL}/profile`, {
+                    headers: { 'Authorization': `Bearer $${token}` }
                 });
                 const data = await res.json();
                 if (data.profile) {
@@ -163,7 +163,7 @@
                     if (data.profile.trips.length > 0) {
                         tripsList.innerHTML = data.profile.trips.map(t => `
                             <div class="trip-card">
-                                <strong>${t}</strong>
+                                <strong>$${t}</strong>
                             </div>
                         `).join('');
                     }
