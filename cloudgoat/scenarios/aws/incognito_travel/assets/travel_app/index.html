@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incognito Travel | Discover the Unknown</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f0c29;
+            --secondary: #302b63;
+            --accent: #24243e;
+            --highlight: #00d2ff;
+            --text-light: #f8f9fa;
+            --text-dark: #2d3436;
+            --glass: rgba(255, 255, 255, 0.1);
+            --danger: #ff7675;
+            --success: #00b894;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* --- Navigation --- */
+        nav {
+            position: fixed;
+            top: 0; width: 100%; padding: 1.5rem 4rem;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(15, 12, 41, 0.8); backdrop-filter: blur(10px);
+            z-index: 1000; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 700;
+            background: linear-gradient(to right, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; cursor: pointer;
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 2rem; }
+        .nav-links a { color: var(--text-light); text-decoration: none; font-weight: 500; transition: 0.3s; opacity: 0.8; }
+        .nav-links a:hover { opacity: 1; color: var(--highlight); }
+        
+        .btn-login { padding: 0.6rem 1.5rem; background: var(--highlight); color: var(--primary); border: none; border-radius: 50px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4); }
+
+        /* --- Global Form Styles --- */
+        .form-group { margin-bottom: 1.5rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; opacity: 0.8; font-size: 0.9rem; }
+        .form-group input {
+            width: 100%; padding: 1rem; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            color: #fff; font-size: 1.1rem; transition: 0.3s;
+        }
+        .form-group input:focus { outline: none; border-color: var(--highlight); background: rgba(255,255,255,0.1); }
+
+        /* --- Sections --- */
+        .section { padding: 8rem 4rem; }
+        .section-title { font-family: 'Outfit', sans-serif; font-size: 3rem; margin-bottom: 4rem; text-align: center; }
+
+        /* --- Hero --- */
+        .hero {
+            height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; background: linear-gradient(to bottom, rgba(15, 12, 41, 0.7), var(--primary)), 
+            url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070');
+            background-size: cover; background-position: center; padding: 0 1rem;
+        }
+        .hero h1 { font-family: 'Outfit', sans-serif; font-size: 4.5rem; margin-bottom: 1rem; }
+        .hero p { font-size: 1.4rem; max-width: 700px; opacity: 0.9; margin-bottom: 2rem; }
+
+        /* --- Card Grid --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--glass); border-radius: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.4s; }
+        .card:hover { transform: translateY(-10px); border-color: var(--highlight); }
+        .card-img { height: 200px; background-size: cover; background-position: center; }
+        .card-content { padding: 1.5rem; }
+
+        /* --- Dashboard --- */
+        .dashboard { display: none; padding: 120px 4rem 4rem; max-width: 1200px; margin: 0 auto; }
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+        .panel { background: var(--glass); padding: 2.5rem; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .flag-box { background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; font-family: 'Outfit', sans-serif; font-weight: 700; text-align: center; display: none; }
+        .trip-item { background: rgba(255,255,255,0.05); margin-bottom: 1rem; padding: 1.2rem; border-radius: 12px; border-left: 4px solid var(--highlight); }
+
+        /* --- Modal --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--accent); color: #fff; padding: 3rem; border-radius: 24px; width: 100%; max-width: 450px; position: relative; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .close-modal { position: absolute; top: 1.5rem; right: 1.5rem; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 1.8rem; }
+        .btn-submit { width: 100%; padding: 1rem; background: var(--highlight); color: var(--primary); border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 1rem; }
+
+        @media (max-width: 768px) { nav { padding: 1.5rem 2rem; } .hero h1 { font-size: 3rem; } .dashboard-grid { grid-template-columns: 1fr; } .section { padding: 4rem 2rem; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo" onclick="location.reload()">INCOGNITO</div>
+        <div class="nav-links">
+            <a href="#destinations">Destinations</a>
+            <a href="#about">About</a>
+            <button class="btn-login" id="nav-login-btn" onclick="openModal()">Login</button>
+            <span id="user-greeting" style="display:none; font-weight: 600;"></span>
+            <a href="#" id="logout-link" onclick="logout()" style="display:none; color: var(--danger); font-weight: 600; margin-left: 1rem; text-decoration: none;">Logout</a>
+        </div>
+    </nav>
+
+    <div id="landing-page">
+        <header class="hero">
+            <h1>Discover the Unknown</h1>
+            <p>Exclusive travel experiences for those who value privacy and adventure beyond the map.</p>
+            <button class="btn-login" style="padding: 1rem 2.5rem; font-size: 1.2rem;" onclick="openModal()">Start Your Journey</button>
+        </header>
+
+        <section class="section" id="destinations">
+            <h2 class="section-title">Enigmatic Destinations</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1506466010722-395aa2bef877?auto=format&fit=crop&q=80&w=1000')"></div>
+                    <div class="card-content"><h3>The Quartz Valley</h3><p>A hidden tectonic rift pulsing with bioluminescent flora.</p></div>
+                </div>
+                <div class="card">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&q=80&w=1000')"></div>
+                    <div class="card-content"><h3>Orbit Station Zero</h3><p>The ultimate orbital escape from terrestrial noise.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="about" style="background: rgba(255,255,255,0.02); text-align: center;">
+            <h2 class="section-title">Our Visionary</h2>
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div style="width: 150px; height: 150px; background: var(--glass); border-radius: 50%; margin: 0 auto 2rem; border: 2px solid var(--highlight); overflow: hidden;">
+                    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Cory" alt="Founder" style="width: 100%;">
+                </div>
+                <h3 style="font-size: 2.5rem; color: var(--highlight); margin-bottom: 0.5rem;">Cory</h3>
+                <p style="font-style: italic; opacity: 0.7; margin-bottom: 2rem; font-size: 1.2rem;">Founder & Lead Explorer</p>
+                <div style="padding: 2rem; background: var(--glass); border-radius: 20px; display: inline-block; border: 1px solid rgba(255,255,255,0.1);">
+                    <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">"Boundaries are just maps waiting to be redrawn."</p>
+                    <p><strong>Direct Inquiries:</strong> <span style="color: var(--highlight); font-family: monospace; font-size: 1.2rem;">cory@hacksmarter.hsm</span></p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard-panel">
+        <div class="flag-box" id="flag-container">
+            SYSTEM NOTIFICATION: High-level access detected. 
+            <br><span id="flag-value" style="font-size: 1.5rem;"></span>
+        </div>
+        <h1 style="font-size: 3rem; margin-bottom: 2rem;">Welcome, <span id="profile-name" style="color: var(--highlight);">Explorer</span>.</h1>
+        <div class="dashboard-grid">
+            <div class="panel">
+                <h3 style="margin-bottom: 1.5rem;">Secure Itineraries</h3>
+                <div id="trips-list"></div>
+            </div>
+            <div class="panel">
+                <h3 style="margin-bottom: 1.5rem; color: var(--highlight);">Agent Profile</h3>
+                <div class="form-group"><label>Preferred Name</label><input type="text" id="update-name"></div>
+                <div class="form-group"><label>Emergency Email</label><input type="text" id="update-email" disabled style="opacity: 0.4;"></div>
+                <button class="btn-submit" onclick="updateProfile()" style="margin-top: 0">Update Profile</button>
+                <div id="dashboard-msg" style="margin-top: 1rem; text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title" style="margin-bottom: 2rem; font-size: 2rem;">Authenticate</h2>
+            <div class="form-group"><label>Agent Identifier (Email)</label><input type="email" id="email" placeholder="agent@hacksmarter.hsm"></div>
+            <div class="form-group"><label>Security Token (Password)</label><input type="password" id="password" placeholder="••••••••"></div>
+            <button class="btn-submit" id="action-btn" onclick="handleAuth()">Login</button>
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                <a href="#" onclick="toggleAuth()" id="toggle-link" style="color: var(--highlight); font-weight: 600; text-decoration: none;">Request Access</a>
+            </p>
+            <div id="message" style="margin-top: 1.5rem; text-align: center; font-weight: 600; color: var(--danger);"></div>
+        </div>
+    </div>
+
+    <script>
+        const COGNITO_CONFIG = { userPoolId: '${pool_id}', clientId: '${client_id}' };
+        const API_URL = '${api_url}'; 
+        let isLogin = true;
+
+        function openModal() { document.getElementById('login-modal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('login-modal').style.display = 'none'; }
+        function logout() { localStorage.clear(); location.reload(); }
+
+        function toggleAuth() {
+            isLogin = !isLogin;
+            document.getElementById('modal-title').innerText = isLogin ? 'Authenticate' : 'Request Access';
+            document.getElementById('action-btn').innerText = isLogin ? 'Login' : 'Submit Request';
+            document.getElementById('toggle-link').innerText = isLogin ? 'Request Access' : 'Return to Authentication';
+            document.getElementById('message').innerText = '';
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('message');
+            if (isLogin) {
+                try {
+                    const res = await fetch(`$${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+                    const data = await res.json();
+                    if (res.ok && data.tokens) {
+                        localStorage.setItem('id_token', data.tokens.id_token);
+                        localStorage.setItem('token', data.tokens.access_token);
+                        msg.style.color = 'var(--success)'; msg.innerText = "Access Granted.";
+                        setTimeout(() => { closeModal(); loadProfile(data.tokens.id_token); }, 1000);
+                    } else { msg.innerText = data.message; }
+                } catch (e) { msg.innerText = "Offline."; }
+            } else {
+                try {
+                    const res = await fetch(`$${API_URL}/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+                    const data = await res.json();
+                    if (res.ok) { msg.style.color = 'var(--success)'; msg.innerText = data.message; setTimeout(() => toggleAuth(), 2000); }
+                    else { msg.innerText = data.message; }
+                } catch (e) { msg.innerText = "Error."; }
+            }
+        }
+
+        async function loadProfile(token) {
+            try {
+                const res = await fetch(`$${API_URL}/profile`, { headers: { 'Authorization': `Bearer $${token}` } });
+                const data = await res.json();
+                if (data.profile) {
+                    document.getElementById('landing-page').style.display = 'none';
+                    document.getElementById('dashboard-panel').style.display = 'block';
+                    document.getElementById('nav-login-btn').style.display = 'none';
+                    document.getElementById('user-greeting').style.display = 'inline';
+                    document.getElementById('user-greeting').innerText = `Agent: $${data.profile.name}`;
+                    document.getElementById('logout-link').style.display = 'inline';
+                    document.getElementById('profile-name').innerText = data.profile.name;
+                    document.getElementById('update-name').value = data.profile.name;
+                    document.getElementById('update-email').value = data.profile.email;
+                    if (data.profile.flag) { document.getElementById('flag-container').style.display = 'block'; document.getElementById('flag-value').innerText = data.profile.flag; }
+                    const tripsList = document.getElementById('trips-list');
+                    if (data.profile.trips.length > 0) {
+                        tripsList.innerHTML = data.profile.trips.map(t => `<div class="trip-item"><strong>$${t}</strong></div>`).join('');
+                    } else { tripsList.innerHTML = "<p>No active missions.</p>"; }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function updateProfile() {
+            const token = localStorage.getItem('id_token');
+            const name = document.getElementById('update-name').value;
+            const msg = document.getElementById('dashboard-msg');
+            try {
+                const res = await fetch(`$${API_URL}/update-profile`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer $${token}` }, body: JSON.stringify({ name }) });
+                const data = await res.json();
+                msg.style.color = res.ok ? 'var(--success)' : 'var(--danger)'; msg.innerText = data.message;
+            } catch (e) { msg.innerText = "Failed."; }
+        }
+
+        window.onload = () => { const token = localStorage.getItem('id_token'); if (token) loadProfile(token); };
+    </script>
+</body>
+</html>

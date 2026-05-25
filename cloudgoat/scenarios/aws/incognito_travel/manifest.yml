@@ -1,0 +1,10 @@
+---
+- name: incognito_travel
+- author: Tyler Ramsbey
+- version: 1.0.0
+- help: |
+    Incognito_Travel: A CloudGoat scenario focusing on Cognito attribute misconfiguration and email normalization inconsistencies.
+    The scenario starts with a travel website and a set of user credentials.
+    Goal: Take over the account of cory@hacksmarter.hsm.
+- last-updated: 05-24-2026
+...

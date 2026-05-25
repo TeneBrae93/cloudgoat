@@ -117,6 +117,17 @@ docker run -it -v ~/.aws:/root/.aws/ rhinosecuritylabs/cloudgoat:latest
 
 ---
 
+### incognito_travel (Easy)
+`cloudgoat create incognito_travel`
+
+In this scenario, you start as an external attacker with limited AWS credentials. Your primary target is the "Incognito Travel" portal. Through careful enumeration and exploitation of a misconfigured Cognito User Pool, you will discover a way to manipulate user attributes and bypass identity verification through email normalization inconsistencies, eventually taking over a high-value user account.
+
+[Visit Scenario Page.](cloudgoat/scenarios/aws/incognito_travel/README.md)  
+
+Contributed by Tyler Ramsbey
+
+---
+
 ### iam_enum_basics (Easy)
 `cloudgoat create iam_enum_basics`
 
