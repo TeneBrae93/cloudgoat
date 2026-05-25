@@ -57,5 +57,5 @@ resource "aws_cognito_user" "cory" {
     email          = "cory@hacksmarter.hsm"
     email_verified = true
   }
-  password = "Password123!"
+  password = "!!VerySecureHackSmarterPasswordn00bs"
 }
